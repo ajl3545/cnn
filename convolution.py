@@ -18,12 +18,6 @@ class Convolutional:  # Steps through each layer, extracts features, adjusts ker
         for x in self.layers.keys():
             output = self.layers[x].forward((output))
 
-        # TODO: get loss
-
-        # A backward pass through all layers
-        for x in self.layers.keys():
-            output = self.layers[x].backward()
-
         return output
 
 
@@ -32,16 +26,22 @@ class Filter:  # Used to Convolve (finds features)
         self.matrix = matrix
         self.size = len(matrix)
 
-    def forward(self, img):
+    def forward(self, img, padding=2):
         dim = len(img)
         down_sample = np.ones(dim*dim)
         down_sample = down_sample.reshape((dim, dim))
+        #down_sample = np.pad(down_sample, pad_width=padding)
 
         for row in range(len(img)-self.size+1):
             for col in range(len(img[0])-self.size+1):
                 sample = img[row: row+self.size, col: col+self.size]
-                filtrix = np.matmul(sample, self.matrix)
-                down_sample[row: row+self.size, col: col+self.size] = filtrix
+
+                filtrix = np.zeros(sample.shape)
+                for row_1 in range(len(sample)):
+                    for col_1 in range(len(sample)):
+                        filtrix[row_1][col_1] = sample[row_1][col_1] * \
+                            self.matrix[row_1][col_1]
+                down_sample[row][col] = np.sum(filtrix)
 
         return down_sample
 
@@ -143,3 +143,30 @@ class AveragePool:
 
     def backward(self):
         pass
+
+
+class ReLU:
+
+    def forward(self, img):
+
+        self.image = img
+
+        for row in range(len(img)):
+            for col in range(len(img[0])):
+                if img[row][col] < 0:
+                    self.image[row][col] = 0
+                else:
+                    self.image[row][col] = img[row][col]
+
+        return self.image
+
+    def backward(self):
+
+        derive = np.zeros(self.image.shape)
+
+        for row in range(len(derive)):
+            for col in range(len(derive[0])):
+                if self.image[row][col] > 0:
+                    derive[row][col] = 1
+
+        return derive

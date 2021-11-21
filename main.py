@@ -17,15 +17,31 @@ conv = c.Convolutional(
     # Input Layer
     input=image_in,
     # Convolutional Layers
-    l1=c.MaxPool(size=2),
+    l1=c.Filter(matrix=[
+        [-1, 0, 1],
+        [-2, 0, 2],
+        [-1, 0, 1]
+    ]),
 )
 
 image_out = conv.start()
 
 # Show result of convulotional abstraction
+ax = plt.gca()
+ax.set_xticks(np.arange(-.5, 100, 1))
+ax.set_yticks(np.arange(-.5, 100, 1))
+plt.grid()
+
+
 plt.title("Input(28x28) " + str(y_train[123]))
 plt.imshow(image_in, cmap='gray')
 plt.show()
+
+ax = plt.gca()
+ax.set_xticks(np.arange(-.5, 100, 1))
+ax.set_yticks(np.arange(-.5, 100, 1))
+plt.grid()
+
 plt.title("Output " + str(y_train[123]))
 plt.imshow(image_out, cmap='gray')
 plt.show()
