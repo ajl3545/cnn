@@ -26,16 +26,14 @@ class Filter:  # Used to Convolve (finds features)
         self.matrix = matrix
         self.size = len(matrix)
 
-    def forward(self, img, padding=2):
+    def forward(self, img):
         dim = len(img)
-        down_sample = np.ones(dim*dim)
-        down_sample = down_sample.reshape((dim, dim))
-        #down_sample = np.pad(down_sample, pad_width=padding)
+        down_sample = np.ones((dim-self.size+1)*(dim-self.size+1))
+        down_sample = down_sample.reshape((dim-self.size+1, dim-self.size+1))
 
-        for row in range(len(img)-self.size+1):
-            for col in range(len(img[0])-self.size+1):
+        for row in range(dim-self.size+1):
+            for col in range(dim-self.size+1):
                 sample = img[row: row+self.size, col: col+self.size]
-
                 filtrix = np.zeros(sample.shape)
                 for row_1 in range(len(sample)):
                     for col_1 in range(len(sample)):
