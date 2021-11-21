@@ -14,9 +14,11 @@ image_in = image.reshape((28, 28))
 
 # Establish network with input, output, and layers
 conv = c.Convolutional(
+    # Input Layer
     input=image_in,
-    # Layers
-    l2=c.AveragePool(size=3),
+    # Convolutional Layers
+    l1=c.MaxPool(size=2),
+    l2=c.AveragePool(size=2),
 )
 
 image_out = conv.start()
