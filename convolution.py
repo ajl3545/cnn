@@ -18,6 +18,12 @@ class Convolutional:  # Steps through each layer, extracts features, adjusts ker
         for x in self.layers.keys():
             output = self.layers[x].forward((output))
 
+        # TODO: get loss
+
+        # A backward pass through all layers
+        for x in self.layers.keys():
+            output = self.layers[x].backward()
+
         return output
 
 
@@ -45,6 +51,10 @@ class MaxPool:
         self.size = size
 
     def forward(self, img):
+
+        # Cache input for backprop
+        self.img = img
+
         # max pool strides by its matrix size
         # this handles if the image is not neatly fitted
         # to the maxpool filter size
@@ -71,7 +81,38 @@ class MaxPool:
     # as the gradient
 
     def backward(self):
-        pass
+
+        # Reconstruct the input image
+        gradient = np.zeros(self.img.shape)
+
+        # Fill in regions where the max value was
+
+        row_count = len(self.img) // self.size
+        col_count = len(self.img[0]) // self.size
+
+        stride = self.size
+
+        for row in range(row_count):
+            for col in range(col_count):
+
+                # Sub sample reigon of image to down sample from
+                sample = self.img[row*stride:row*stride +
+                                  stride, col*stride:col*stride+stride]
+
+                # index of max value relative to sample matrix (self.size x self.size)
+                argmax = np.argmax(sample)
+
+                # Find relative position in sample matrix
+                y = argmax // len(sample)
+                x = argmax % len(sample)
+
+                # Value to pass to gradient
+                max = sample[y][x]
+
+                # get index pos in gradient image
+                gradient[y+(row*stride)][x+(col*stride)] = max
+
+        return gradient
 
 
 class AveragePool:
@@ -99,10 +140,6 @@ class AveragePool:
                 down_sample[row][col] = avg
 
         return down_sample
-
-    # MaxPool back propogation keeps track of the largest
-    # element index from the forward pass and uses it
-    # as the gradient
 
     def backward(self):
         pass

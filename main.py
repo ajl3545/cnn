@@ -18,7 +18,6 @@ conv = c.Convolutional(
     input=image_in,
     # Convolutional Layers
     l1=c.MaxPool(size=2),
-    l2=c.AveragePool(size=2),
 )
 
 image_out = conv.start()
