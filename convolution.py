@@ -12,39 +12,56 @@ class Convolutional:  # Steps through each layer, extracts features, adjusts ker
     # Uses kernals and pooling layers to abstract features
     def start(self):
 
-        output = None
+        output = self.img
 
         # A forward pass through all layers
         for x in self.layers.keys():
-            output = self.layers[x].forward((self.img))
+            output = self.layers[x].forward((output))
 
         return output
 
 
 class Filter:  # Used to Convolve (finds features)
-    def __init__(self, size):
-        self.size = size
-        self.W = np.ones(size*size)
-        self.W = self.W.reshape((self.size, self.size))
+    def __init__(self, matrix):
+        self.matrix = matrix
+        self.size = len(matrix)
 
     def forward(self, img):
-        print(self.W)
+        dim = len(img)
+        down_sample = np.ones(dim*dim)
+        down_sample = down_sample.reshape((dim, dim))
+
+        for row in range(len(img)-self.size+1):
+            for col in range(len(img[0])-self.size+1):
+                sample = img[row: row+self.size, col: col+self.size]
+                filtrix = np.matmul(sample, self.matrix)
+                down_sample[row: row+self.size, col: col+self.size] = filtrix
+
+        return down_sample
 
 
 class MaxPool:
     def __init__(self, size):
         self.size = size
 
-    # Default stride of 1
     def forward(self, img):
-        dim = len(img)-self.size+1
-        down_sample = np.ones(dim*dim)
-        down_sample = down_sample.reshape((dim, dim))
+        # max pool strides by its matrix size
+        # this handles if the image is not neatly fitted
+        # to the maxpool filter size
 
-        for row in range(len(img)-self.size):
-            for col in range(len(img[0])-self.size):
-                sample = img[row:row+self.size, col:col+self.size]
-                max = np.matrix(sample).max()
+        row_count = len(img) // self.size
+        col_count = len(img[0]) // self.size
+
+        down_sample = np.ones(row_count*col_count)
+        down_sample = down_sample.reshape((row_count, col_count))
+
+        stride = self.size
+
+        for row in range(row_count):
+            for col in range(col_count):
+                sample = img[row*stride:row*stride +
+                             stride, col*stride:col*stride+stride]
+                max = np.max(sample)
                 down_sample[row][col] = max
 
         return down_sample
@@ -57,30 +74,35 @@ class MaxPool:
         pass
 
 
-# Load data
-mnist = MNIST('MNIST/')
-x_train, y_train = mnist.load_training()
+class AveragePool:
+    def __init__(self, size):
+        self.size = size
 
-# Get first Input image and reshape to np.array of (28x28) pixels
-image = x_train[0]
-image = np.array(image, dtype='int')
-image_in = image.reshape((28, 28))
+    def forward(self, img):
+        # max pool strides by its matrix size
+        # this handles if the image is not neatly fitted
+        # to the maxpool filter size
 
-# Establish network with input, output, and layers
-conv = Convolutional(
-    input=image_in,
-    # Layers
-    l1=MaxPool(size=2),
-    l2=Filter([  # Sharpen
-        [0, -1, 0],
-        [-1, 5, -1],
-        [0, -1, 0],
-    ])
-)
-image_out = conv.start()
+        row_count = len(img) // self.size
+        col_count = len(img[0]) // self.size
 
-# Show result of convulotional abstraction
-plt.imshow(image_in, cmap='gray')
-plt.show()
-plt.imshow(image_out, cmap='gray')
-plt.show()
+        down_sample = np.ones(row_count*col_count)
+        down_sample = down_sample.reshape((row_count, col_count))
+
+        stride = self.size
+
+        for row in range(row_count):
+            for col in range(col_count):
+                sample = img[row*stride:row*stride +
+                             stride, col*stride:col*stride+stride]
+                avg = np.sum(sample)/sample.size
+                down_sample[row][col] = avg
+
+        return down_sample
+
+    # MaxPool back propogation keeps track of the largest
+    # element index from the forward pass and uses it
+    # as the gradient
+
+    def backward(self):
+        pass
