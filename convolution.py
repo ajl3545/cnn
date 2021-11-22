@@ -28,8 +28,9 @@ class Filter:  # Used to Convolve (finds features)
 
     def forward(self, img):
         dim = len(img)
-        down_sample = np.ones((dim-self.size+1)*(dim-self.size+1))
+        down_sample = np.zeros((dim-self.size+1)*(dim-self.size+1))
         down_sample = down_sample.reshape((dim-self.size+1, dim-self.size+1))
+        down_sample = np.pad(down_sample, pad_width=0)
 
         for row in range(dim-self.size+1):
             for col in range(dim-self.size+1):
@@ -42,6 +43,9 @@ class Filter:  # Used to Convolve (finds features)
                 down_sample[row][col] = np.sum(filtrix)
 
         return down_sample
+
+    def backward(self):
+        pass
 
 
 class MaxPool:
